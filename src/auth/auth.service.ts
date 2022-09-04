@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotFoundException,
   RequestTimeoutException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -14,16 +15,32 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ClientProxy } from '@nestjs/microservices';
 import { catchError, throwError, timeout, TimeoutError } from 'rxjs';
+import { User } from './user.entity';
+import { BaseService } from '../services/base.service';
+import { LoggerService } from '../services/logger.service';
 
 @Injectable()
-export class AuthService {
+export class AuthService extends BaseService<User, UsersRepository> {
   constructor(
     @InjectRepository(UsersRepository)
     private usersRepository: UsersRepository,
     @Inject('USER_CLIENT')
     private client: ClientProxy,
     private jwtService: JwtService,
-  ) {}
+    private loggerService: LoggerService,
+  ) {
+    super(usersRepository, loggerService);
+  }
+
+  async getUserById(id: string): Promise<User> {
+    const found = await this.usersRepository.findOne({ where: { id } });
+
+    if (!found) {
+      throw new NotFoundException(`Code with ID "${id}" not found`);
+    }
+
+    return found;
+  }
 
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
     return this.usersRepository.createUser(authCredentialsDto);
@@ -34,7 +51,9 @@ export class AuthService {
       email: user.email,
     });
 
-    const payload = { user, sub: loggedInUser.id };
+    // const payload = { user, sub: loggedInUser.id };
+
+    const payload = { userId: loggedInUser.id };
 
     return {
       userId: loggedInUser.id,

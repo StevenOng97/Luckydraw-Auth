@@ -4,10 +4,11 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  BaseEntity,
 } from 'typeorm';
 
 @Entity()
-export class User {
+export class User extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -22,6 +23,9 @@ export class User {
 
   @Column()
   phoneNumber: string;
+
+  @Column({ default: 0 })
+  points: number;
 
   @CreateDateColumn()
   createdAt: Date;
