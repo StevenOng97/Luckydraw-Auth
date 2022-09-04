@@ -12,7 +12,7 @@ import { AuthModule } from './auth/auth.module';
       port: 5432,
       username: 'postgres',
       password: 'admin',
-      database: 'luckydraw',
+      database: 'luckydraw-user',
       autoLoadEntities: true,
       synchronize: true,
     }),
